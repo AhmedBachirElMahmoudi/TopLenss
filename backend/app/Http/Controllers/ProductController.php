@@ -47,7 +47,15 @@ class ProductController extends Controller
      */
     public function show($reference)
     {
-        $product = GlassesProduct::with('brand')->find($reference);
+        // Décoder la référence si elle est encodée dans l'URL
+        $decodedReference = urldecode($reference);
+        
+        // Chercher par la colonne 'reference' au lieu de 'id'
+        $product = GlassesProduct::with(['brand', 'images' => function($query) {
+            $query->orderBy('is_primary', 'desc')->orderBy('created_at', 'desc');
+        }])
+        ->where('reference', $decodedReference)
+        ->first();
 
         if (!$product) {
             return response()->json([
@@ -56,5 +64,33 @@ class ProductController extends Controller
         }
 
         return response()->json($product);
+    }
+    public function destroy($reference)
+    {
+        $decodedReference = urldecode($reference);
+        $product = GlassesProduct::with('images')->where('reference', $decodedReference)->first();
+
+        if (!$product) {
+            return response()->json(['message' => 'Product not found'], 404);
+        }
+
+        // 1. Delete all associated images from Storage
+        foreach ($product->images as $image) {
+            // Path: products/{reference}/{filename}
+            // Logic mirrored from ProductImageController specific path construction
+            $path = "products/{$product->reference}/{$image->file_name}";
+            if (\Illuminate\Support\Facades\Storage::disk('public')->exists($path)) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($path);
+            }
+        }
+        
+        // 2. Delete image records (Database)
+        // If cascading delete is set on DB, this happens automatically, but let's be safe or if not set.
+        $product->images()->delete();
+
+        // 3. Delete product
+        $product->delete();
+
+        return response()->json(['message' => 'Product and associated images deleted successfully']);
     }
 }

@@ -8,6 +8,7 @@ use App\Http\Controllers\ClientController;
 use App\Http\Controllers\SyncController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\BrandController;
+use App\Http\Controllers\ProductImageController;
 
 Route::post('/login', [AuthController::class, 'login']);
 
@@ -31,10 +32,23 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/sync/catalogs', [SyncController::class, 'syncCatalogs']);
     Route::post('/sync/products', [SyncController::class, 'syncProducts']);
     
+    // Product Images (Must be defined BEFORE /products/{reference} wildcard routes)
+    Route::get('/products/{reference}/images', [ProductImageController::class, 'index']);
+    Route::post('/products/{reference}/images', [ProductImageController::class, 'store']);
+    Route::post('/products/images/batch-upload-folder', [ProductImageController::class, 'batchStore']);
+    Route::put('/products/images/{id}', [ProductImageController::class, 'update']);
+    Route::delete('/products/images/{id}', [ProductImageController::class, 'destroy']);
+
     // Products management
     Route::get('/products', [ProductController::class, 'index']);
-    Route::get('/products/{reference}', [ProductController::class, 'show']);
+    Route::get('/products/{reference}', [ProductController::class, 'show'])->where('reference', '.*');
+    Route::delete('/products/{reference}', [ProductController::class, 'destroy'])->where('reference', '.*');
     
     // Brands management
-    Route::get('/brands', [BrandController::class, 'index']);
+    Route::get('/brands', [\App\Http\Controllers\BrandController::class, 'index']);
+
+    // Wishlist
+    Route::get('/wishlist/{clientId}', [\App\Http\Controllers\WishlistController::class, 'index']);
+    Route::get('/wishlist/{clientId}/refs', [\App\Http\Controllers\WishlistController::class, 'getReferences']);
+    Route::post('/wishlist/toggle', [\App\Http\Controllers\WishlistController::class, 'toggle']);
 });

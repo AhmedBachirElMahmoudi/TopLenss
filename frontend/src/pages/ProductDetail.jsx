@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import DashboardLayout from '../components/DashboardLayout';
-import { ArrowLeft, Package, DollarSign, Hash, Barcode } from 'lucide-react';
+import { ArrowLeft, Package, DollarSign, Hash, Barcode, Image as ImageIcon, Settings } from 'lucide-react';
 
 export default function ProductDetail() {
+  const [activeImage, setActiveImage] = useState(null);
   const { reference } = useParams();
   const navigate = useNavigate();
   const { api } = useAuth();
@@ -18,8 +19,19 @@ export default function ProductDetail() {
   const fetchProduct = async () => {
     try {
       setLoading(true);
-      const response = await api.get(`/products/${reference}`);
+      const decodedReference = decodeURIComponent(reference);
+      const response = await api.get(`/products/${decodedReference}`);
       setProduct(response.data);
+
+      // Set initial active image
+      if (response.data.cover && response.data.cover !== 'defaultcover') {
+        setActiveImage(`/storage/products/${response.data.reference}/${response.data.cover}`);
+      } else if (response.data.images && response.data.images.length > 0) {
+        setActiveImage(`/storage/products/${response.data.reference}/${response.data.images[0].image_name}`);
+      } else {
+        setActiveImage('/images/default-product.png');
+      }
+
     } catch (error) {
       console.error('Error fetching product:', error);
     } finally {
@@ -32,6 +44,10 @@ export default function ProductDetail() {
       style: 'currency',
       currency: 'MAD'
     }).format(price);
+  };
+
+  const handleThumbnailClick = (imageName) => {
+    setActiveImage(`/storage/products/${product.reference}/${imageName}`);
   };
 
   if (loading) {
@@ -62,26 +78,65 @@ export default function ProductDetail() {
     <DashboardLayout>
       <div className="product-detail-container">
         {/* Back Button */}
-        <button onClick={() => navigate('/dashboard/products')} className="back-btn">
-          <ArrowLeft size={20} />
-          <span>Back to Products</span>
-        </button>
+        <div className="header-actions">
+          <button onClick={() => navigate('/dashboard/products')} className="back-btn">
+            <ArrowLeft size={20} />
+            <span>Back to Products</span>
+          </button>
+
+          <button
+            onClick={() => navigate(`/dashboard/products/${encodeURIComponent(product.reference)}/edit`)}
+            className="manage-images-btn" // Reuse style for now or create generic 'action-btn'
+            style={{ marginRight: '1rem', background: '#f59e0b' }} // Orange/Yellow distinct color
+          >
+            <Settings size={20} />
+            <span>Edit / Delete Product</span>
+          </button>
+
+          <button
+            onClick={() => navigate(`/dashboard/images/${encodeURIComponent(product.reference)}`)}
+            className="manage-images-btn"
+          >
+            <ImageIcon size={20} />
+            <span>Manage Images</span>
+          </button>
+        </div>
 
         {/* Product Detail */}
         <div className="product-detail-content">
           {/* Left: Image */}
+          {/* Left: Image Gallery */}
           <div className="product-image-section">
-            <img
-              src={product.cover && product.cover !== 'defaultcover'
-                ? `/images/products/${product.cover}`
-                : '/images/default-product.png'
-              }
-              alt={product.title}
-              onError={(e) => e.target.src = '/images/default-product.png'}
-            />
-            {product.qte_stock <= 5 && (
-              <div className="stock-badge low">
-                Low Stock
+            <div className="main-image-container">
+              <img
+                src={activeImage}
+                alt={product.title}
+                onError={(e) => e.target.src = '/images/default-product.png'}
+                className="main-image"
+              />
+              {product.qte_stock <= 5 && (
+                <div className="stock-badge low">
+                  Low Stock
+                </div>
+              )}
+            </div>
+
+            {/* Thumbnails */}
+            {product.images && product.images.length > 0 && (
+              <div className="thumbnails-grid">
+                {/* Add cover if it exists separately, but typically cover is in images list if synced */}
+                {product.images.map((img, idx) => (
+                  <div
+                    key={img.id}
+                    className={`thumbnail-item ${activeImage.includes(img.image_name) ? 'active' : ''}`}
+                    onClick={() => handleThumbnailClick(img.image_name)}
+                  >
+                    <img
+                      src={`/storage/products/${product.reference}/${img.image_name}`}
+                      alt={`View ${idx + 1}`}
+                    />
+                  </div>
+                ))}
               </div>
             )}
           </div>
@@ -188,6 +243,34 @@ export default function ProductDetail() {
             transform: translateX(-4px);
           }
 
+          .header-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+          }
+
+          .manage-images-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.25rem;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 6px -1px rgba(52, 152, 219, 0.4);
+          }
+
+          .manage-images-btn:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px -1px rgba(52, 152, 219, 0.5);
+          }
+
           .product-detail-content {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -200,14 +283,57 @@ export default function ProductDetail() {
 
           .product-image-section {
             position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
           }
 
-          .product-image-section img {
+          .main-image-container {
+             position: relative;
+             width: 100%;
+             height: 450px;
+             border-radius: 12px;
+             overflow: hidden;
+             background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+          }
+
+          .main-image {
             width: 100%;
-            height: 500px;
-            object-fit: cover;
-            border-radius: 12px;
-            background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+            height: 100%;
+            object-fit: contain;
+          }
+
+          .thumbnails-grid {
+             display: grid;
+             grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+             gap: 12px;
+          }
+
+          .thumbnail-item {
+             height: 70px;
+             border-radius: 8px;
+             overflow: hidden;
+             cursor: pointer;
+             border: 2px solid transparent;
+             transition: all 0.2s;
+             background: #f9fafb;
+          }
+
+          .thumbnail-item.active {
+             border-color: #3498db;
+             box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+          }
+
+          .thumbnail-item:hover {
+             transform: translateY(-2px);
+             box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+          }
+
+          .thumbnail-item img {
+             width: 100%;
+             height: 100%;
+             object-fit: contain;
+             padding: 4px;
           }
 
           .stock-badge {
@@ -219,6 +345,7 @@ export default function ProductDetail() {
             font-size: 0.875rem;
             font-weight: 600;
             text-transform: uppercase;
+            z-index: 10;
           }
 
           .stock-badge.low {

@@ -18,4 +18,10 @@ class GlassesProduct extends Model
     {
         return $this->belongsTo(Brand::class, 'brand_id', 'brand_id');
     }
+
+    // Relationship with ProductImage
+    public function images()
+    {
+        return $this->hasMany(ProductImage::class, 'product_reference', 'reference');
+    }
 }

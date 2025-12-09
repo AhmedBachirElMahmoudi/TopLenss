@@ -2,10 +2,12 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import DashboardLayout from '../components/DashboardLayout';
+import { Search, Package, Filter, X, Heart } from 'lucide-react';
+import styles from '../style/ManagerProducts.module.css';
 
 export default function ManagerProducts() {
     const navigate = useNavigate();
-    const [searchParams] = useSearchParams();
+    const [searchParams, setSearchParams] = useSearchParams();
     const { api } = useAuth();
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -14,11 +16,63 @@ export default function ManagerProducts() {
     const [totalPages, setTotalPages] = useState(1);
     const [total, setTotal] = useState(0);
     const [selectedBrand, setSelectedBrand] = useState(null);
+    const [wishlistRefs, setWishlistRefs] = useState([]);
     const brandId = searchParams.get('brand_id');
+
+    // Get client from storage
+    const getClient = () => {
+        const stored = localStorage.getItem('selectedClient');
+        return stored ? JSON.parse(stored) : null;
+    };
+    const client = getClient();
 
     useEffect(() => {
         fetchProducts();
-    }, [currentPage, search]);
+        if (client) fetchWishlist();
+    }, [currentPage, search, brandId]);
+
+    const fetchWishlist = async () => {
+        if (!client) return;
+        try {
+            const res = await api.get(`/wishlist/${client.ct_num}/refs`);
+            setWishlistRefs(res.data);
+        } catch (error) {
+            console.error("Failed to fetch wishlist", error);
+        }
+    };
+
+    const toggleWishlist = async (e, productRef) => {
+        e.stopPropagation();
+        if (!client) {
+            alert("No client selected");
+            return;
+        }
+
+        // Optimistic update
+        const isWished = wishlistRefs.includes(productRef);
+        let newRefs;
+        if (isWished) {
+            newRefs = wishlistRefs.filter(r => r !== productRef);
+        } else {
+            newRefs = [...wishlistRefs, productRef];
+        }
+        setWishlistRefs(newRefs);
+
+        try {
+            await api.post('/wishlist/toggle', {
+                client_id: client.ct_num,
+                product_reference: productRef
+            });
+        } catch (error) {
+            console.error("Error toggling wishlist", error);
+            // Revert on error
+            if (isWished) {
+                setWishlistRefs([...newRefs, productRef]);
+            } else {
+                setWishlistRefs(newRefs.filter(r => r !== productRef));
+            }
+        }
+    };
 
     const fetchProducts = async () => {
         try {
@@ -55,7 +109,20 @@ export default function ManagerProducts() {
 
     const handleSearchChange = (e) => {
         setSearch(e.target.value);
-        setCurrentPage(1); // Reset to first page on search
+        setCurrentPage(1);
+    };
+
+    const handleClearBrandFilter = () => {
+        // Méthode 1: Nettoyer tous les paramètres d'URL
+        setSearchParams({});
+
+        // Méthode 2: Réinitialiser l'état
+        setSelectedBrand(null);
+        setCurrentPage(1);
+        setSearch('');
+
+        // Méthode 3: Naviguer sans paramètres (optionnel)
+        navigate('/dashboard/products', { replace: true });
     };
 
     const formatPrice = (price) => {
@@ -65,75 +132,140 @@ export default function ManagerProducts() {
         }).format(price);
     };
 
+    const handlePageChange = (newPage) => {
+        setCurrentPage(newPage);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    const handleImageError = (e) => {
+        e.target.onerror = null;
+        e.target.src = '/images/default-product.png';
+    };
+
     return (
         <DashboardLayout>
-            <div className="products-container">
-                <div className="products-header">
-                    <h1>Products Management</h1>
-                    <p className="products-subtitle">
+            <div className={styles.container}>
+                {/* Header */}
+                <div className={styles.header}>
+                    <h1 className={styles.title}>Products Management</h1>
+                    <p className={styles.subtitle}>
                         {total} product{total !== 1 ? 's' : ''} total
+                        {brandId && ` • Filtered by brand`}
                     </p>
                 </div>
 
+                {/* Brand Filter Badge */}
+                {selectedBrand && (
+                    <div className={styles.brandBadge}>
+                        <Filter size={16} />
+                        <span>
+                            Filtered by: <strong>{selectedBrand.name}</strong>
+                        </span>
+                        <button
+                            onClick={handleClearBrandFilter}
+                            title="Clear filter"
+                            className={styles.clearFilterButton}
+                        >
+                            <X size={16} />
+                        </button>
+                    </div>
+                )}
+
                 {/* Search Bar */}
-                <div className="search-container">
+                <div className={styles.searchContainer}>
                     <input
                         type="text"
-                        className="search-input"
+                        className={styles.searchInput}
                         placeholder="Search by reference, title, barcode, or brand..."
                         value={search}
                         onChange={handleSearchChange}
+                        disabled={loading}
                     />
-                    <svg className="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
+                    <Search className={styles.searchIcon} />
                 </div>
 
-                {/* Products Grid */}
+                {/* Products Content */}
                 {loading ? (
-                    <div className="loading-container">
-                        <div className="loading-spinner"></div>
-                        <p>Loading products...</p>
+                    <div className={styles.loadingContainer}>
+                        <div className={styles.loadingSpinner} />
+                        <p className={styles.loadingText}>Loading products...</p>
                     </div>
                 ) : products.length === 0 ? (
-                    <div className="empty-state">
-                        <svg className="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-                        </svg>
-                        <h3>No products found</h3>
-                        <p>Try adjusting your search or sync products from the database</p>
+                    <div className={styles.emptyState}>
+                        <Package className={styles.emptyIcon} size={64} />
+                        <h3 className={styles.emptyTitle}>
+                            {brandId ? `No products found for this brand` : "No products found"}
+                        </h3>
+                        <p className={styles.emptyText}>
+                            {brandId
+                                ? "Try another brand or clear the filter"
+                                : "Try adjusting your search or sync products from the database"
+                            }
+                        </p>
+                        {brandId && (
+                            <button
+                                onClick={handleClearBrandFilter}
+                                className={styles.clearFilterButtonLarge}
+                            >
+                                <X size={18} />
+                                Clear Brand Filter
+                            </button>
+                        )}
                     </div>
                 ) : (
                     <>
-                        <div className="products-grid">
+                        {/* Products Grid */}
+                        <div className={styles.grid}>
                             {products.map((product) => (
                                 <div
                                     key={product.reference}
-                                    className="product-card"
-                                    onClick={() => navigate(`/dashboard/products/${product.reference}`)}
+                                    className={styles.card}
+                                    onClick={() => navigate(`/dashboard/products/${encodeURIComponent(product.reference)}`)}
                                 >
-                                    <div className="product-image">
+                                    {/* Product Image */}
+                                    <div className={styles.imageContainer}>
+                                        <button
+                                            className={styles.wishlistBtn}
+                                            onClick={(e) => toggleWishlist(e, product.reference)}
+                                        >
+                                            <Heart
+                                                size={20}
+                                                color={wishlistRefs.includes(product.reference) ? "#ef4444" : "#94a3b8"}
+                                                fill={wishlistRefs.includes(product.reference) ? "#ef4444" : "none"}
+                                            />
+                                        </button>
+
                                         <img
                                             src={product.cover && product.cover !== 'defaultcover'
-                                                ? `/images/products/${product.cover}`
+                                                ? `/storage/products/${product.reference}/${product.cover}`
                                                 : '/images/default-product.png'
                                             }
                                             alt={product.title}
-                                            onError={(e) => e.target.src = '/images/default-product.png'}
+                                            className={styles.image}
+                                            onError={handleImageError}
                                         />
                                         {product.qte_stock <= 5 && (
-                                            <div className="stock-badge low">
+                                            <div className={`${styles.stockBadge} ${styles.lowStock}`}>
                                                 Low Stock
                                             </div>
                                         )}
                                     </div>
-                                    <div className="product-info">
-                                        <div className="product-brand">{product.brand?.name || 'N/A'}</div>
-                                        <h3 className="product-title">{product.title}</h3>
-                                        <div className="product-reference">Ref: {product.reference}</div>
-                                        <div className="product-footer">
-                                            <div className="product-price">{formatPrice(product.price)}</div>
-                                            <div className={`product-stock ${product.qte_stock <= 5 ? 'low' : ''}`}>
+
+                                    {/* Product Info */}
+                                    <div className={styles.info}>
+                                        <div className={styles.brand}>
+                                            {product.brand?.name || 'N/A'}
+                                        </div>
+                                        <h3 className={styles.productTitle}>{product.title}</h3>
+                                        <div className={styles.reference}>
+                                            Ref: {product.reference}
+                                        </div>
+                                        <div className={styles.footer}>
+                                            <div className={styles.price}>
+                                                {formatPrice(product.price)}
+                                            </div>
+                                            <div className={`${styles.stock} ${product.qte_stock <= 5 ? styles.lowStockText : ''
+                                                }`}>
                                                 Stock: {product.qte_stock || 0}
                                             </div>
                                         </div>
@@ -143,310 +275,36 @@ export default function ManagerProducts() {
                         </div>
 
                         {/* Pagination */}
-                        <div className="pagination">
-                            <button
-                                className="pagination-btn"
-                                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                                disabled={currentPage === 1}
-                            >
-                                Previous
-                            </button>
+                        {totalPages > 1 && (
+                            <div className={styles.pagination}>
+                                <button
+                                    className={styles.paginationButton}
+                                    onClick={() => handlePageChange(currentPage - 1)}
+                                    disabled={currentPage === 1 || loading}
+                                >
+                                    Previous
+                                </button>
 
-                            <div className="pagination-info">
-                                Page {currentPage} of {totalPages}
+                                <div className={styles.paginationInfo}>
+                                    Page {currentPage} of {totalPages}
+                                    {brandId && (
+                                        <span className={styles.filteredInfo}>
+                                            • Filtered
+                                        </span>
+                                    )}
+                                </div>
+
+                                <button
+                                    className={styles.paginationButton}
+                                    onClick={() => handlePageChange(currentPage + 1)}
+                                    disabled={currentPage === totalPages || loading}
+                                >
+                                    Next
+                                </button>
                             </div>
-
-                            <button
-                                className="pagination-btn"
-                                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                                disabled={currentPage === totalPages}
-                            >
-                                Next
-                            </button>
-                        </div>
+                        )}
                     </>
                 )}
-
-                <style jsx>{`
-        .products-container {
-          padding: 2rem;
-          max-width: 1400px;
-          margin: 0 auto;
-        }
-
-        .products-header {
-          margin-bottom: 2rem;
-        }
-
-        .products-header h1 {
-          font-size: 2rem;
-          font-weight: 700;
-          color: #1f2937;
-          margin-bottom: 0.5rem;
-        }
-
-        .products-subtitle {
-          color: #6b7280;
-          font-size: 0.95rem;
-        }
-
-        .search-container {
-          position: relative;
-          margin-bottom: 2rem;
-        }
-
-        .search-input {
-          width: 100%;
-          padding: 0.75rem 1rem 0.75rem 3rem;
-          border: 2px solid #e5e7eb;
-          border-radius: 12px;
-          font-size: 0.95rem;
-          transition: all 0.2s;
-        }
-
-        .search-input:focus {
-          outline: none;
-          border-color: #3b82f6;
-          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-        }
-
-        .search-icon {
-          position: absolute;
-          left: 1rem;
-          top: 50%;
-          transform: translateY(-50%);
-          width: 20px;
-          height: 20px;
-          color: #9ca3af;
-        }
-
-        .products-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-          gap: 1.5rem;
-          margin-bottom: 2rem;
-        }
-
-        .product-card {
-          background: white;
-          border-radius: 16px;
-          overflow: hidden;
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-          transition: all 0.3s ease;
-          cursor: pointer;
-        }
-
-        .product-card:hover {
-          transform: translateY(-4px);
-          box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
-        }
-
-        .product-image {
-          position: relative;
-          width: 100%;
-          height: 220px;
-          background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          overflow: hidden;
-        }
-
-        .product-image img {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-          transition: transform 0.3s;
-        }
-
-        .product-card:hover .product-image img {
-          transform: scale(1.05);
-        }
-
-        .stock-badge {
-          position: absolute;
-          top: 12px;
-          right: 12px;
-          padding: 0.35rem 0.75rem;
-          border-radius: 20px;
-          font-size: 0.75rem;
-          font-weight: 600;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-        }
-
-        .stock-badge.low {
-          background: #fef2f2;
-          color: #dc2626;
-          border: 1px solid #fecaca;
-        }
-
-        .product-info {
-          padding: 1.25rem;
-        }
-
-        .product-brand {
-          font-size: 0.75rem;
-          font-weight: 600;
-          text-transform: uppercase;
-          color: #3498db;
-          letter-spacing: 0.5px;
-          margin-bottom: 0.5rem;
-        }
-
-        .product-title {
-          font-size: 1rem;
-          font-weight: 600;
-          color: #1f2937;
-          margin-bottom: 0.5rem;
-          display: -webkit-box;
-          -webkit-line-clamp: 2;
-          -webkit-box-orient: vertical;
-          overflow: hidden;
-          line-height: 1.4;
-          min-height: 2.8em;
-        }
-
-        .product-reference {
-          font-size: 0.8rem;
-          color: #6b7280;
-          font-family: 'Courier New', monospace;
-          margin-bottom: 1rem;
-        }
-
-        .product-footer {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding-top: 1rem;
-          border-top: 1px solid #f3f4f6;
-        }
-
-        .product-price {
-          font-size: 1.25rem;
-          font-weight: 700;
-          color: #3498db;
-        }
-
-        .product-stock {
-          font-size: 0.85rem;
-          font-weight: 600;
-          color: #059669;
-        }
-
-        .product-stock.low {
-          color: #dc2626;
-        }
-
-        .pagination {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 1rem;
-          margin-top: 2rem;
-        }
-
-        .pagination-btn {
-          padding: 0.5rem 1.5rem;
-          background: white;
-          border: 2px solid #e5e7eb;
-          border-radius: 8px;
-          font-weight: 500;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-
-        .pagination-btn:hover:not(:disabled) {
-          border-color: #3b82f6;
-          color: #3b82f6;
-          transform: translateY(-1px);
-        }
-
-        .pagination-btn:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-
-        .pagination-info {
-          padding: 0.5rem 1rem;
-          background: #f3f4f6;
-          border-radius: 8px;
-          font-weight: 500;
-          color: #6b7280;
-        }
-
-        .loading-container {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          padding: 4rem 2rem;
-        }
-
-        .loading-spinner {
-          width: 50px;
-          height: 50px;
-          border: 4px solid #f3f4f6;
-          border-top: 4px solid #3b82f6;
-          border-radius: 50%;
-          animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
-
-        .loading-container p {
-          margin-top: 1rem;
-          color: #6b7280;
-        }
-
-        .empty-state {
-          text-align: center;
-          padding: 4rem 2rem;
-          background: white;
-          border-radius: 12px;
-        }
-
-        .empty-icon {
-          width: 64px;
-          height: 64px;
-          margin: 0 auto 1rem;
-          color: #d1d5db;
-        }
-
-        .empty-state h3 {
-          font-size: 1.25rem;
-          font-weight: 600;
-          color: #1f2937;
-          margin-bottom: 0.5rem;
-        }
-
-        .empty-state p {
-          color: #6b7280;
-        }
-
-        @media (max-width: 768px) {
-          .products-container {
-            padding: 1rem;
-          }
-
-          .products-grid {
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 1rem;
-          }
-
-          .product-image {
-            height: 180px;
-          }
-        }
-
-        @media (max-width: 480px) {
-          .products-grid {
-            grid-template-columns: 1fr;
-          }
-        }
-      `}</style>
             </div>
         </DashboardLayout>
     );

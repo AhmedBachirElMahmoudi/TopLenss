@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import {
@@ -12,163 +13,206 @@ import {
     Package,
     ClipboardCheck,
     Menu,
-    RefreshCw
+    RefreshCw,
+    X,
+    Tag,
+    Heart
 } from "lucide-react";
-import { useState } from "react";
+import styles from "../style/components/DashboardLayout.module.css";
 
 export default function DashboardLayout({ children, role, title }) {
     const { logout, user } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
     const [sidebarOpen, setSidebarOpen] = useState(true);
+    const [isMobile, setIsMobile] = useState(false);
 
-    // Common styles
-    const activeColor = "#3498db";
-    const sidebarBg = "#2c3e50";
-    const sidebarText = "#ecf0f1";
+    // Detect mobile screen size
+    useEffect(() => {
+        const checkMobile = () => {
+            setIsMobile(window.innerWidth <= 768);
+            if (window.innerWidth <= 768) {
+                setSidebarOpen(false);
+            }
+        };
 
+        checkMobile();
+        window.addEventListener("resize", checkMobile);
+        return () => window.removeEventListener("resize", checkMobile);
+    }, []);
+
+    // Menu items based on role
     const MenuItems = role === 'admin' ? [
         { icon: <LayoutDashboard size={20} />, label: 'Dashboard', path: '/admin' },
-        { icon: <UserPlus size={20} />, label: 'Create Manager', path: '/admin/create-user' }, // We might need to handle internal tabs or routes
+        { icon: <UserPlus size={20} />, label: 'Create Manager', path: '/admin/create-user' },
         { icon: <Users size={20} />, label: 'All Users', path: '/admin/users' },
         { icon: <Settings size={20} />, label: 'Settings', path: '/admin/settings' },
     ] : [
         { icon: <LayoutDashboard size={20} />, label: 'Overview', path: '/dashboard' },
         { icon: <ShoppingCart size={20} />, label: 'Orders', path: '/dashboard/orders' },
+        { icon: <Tag size={20} />, label: 'Brands', path: '/dashboard/brands' },
         { icon: <Package size={20} />, label: 'Products', path: '/dashboard/products' },
+        { icon: <Heart size={20} />, label: 'Wishlist', path: '/dashboard/wishlist' }, // Added Wishlist
+        { icon: <Package size={20} />, label: 'Images', path: '/dashboard/images/:reference' },
         { icon: <ClipboardCheck size={20} />, label: 'Validation', path: '/dashboard/validation' },
         { icon: <RefreshCw size={20} />, label: 'Synchronization', path: '/dashboard/sync' },
         { icon: <Settings size={20} />, label: 'Settings', path: '/dashboard/settings' },
-        { icon: <Users size={20} />, label: 'Switch Client', path: '/clients', isAction: true },
+        { icon: <Users size={20} />, label: 'Switch Client', path: '/clients' },
     ];
 
-    const handleNavigation = (item) => {
-        // For now, if path matches current location, do nothing or simple navigation
-        // If it is 'create-user' but we are using tabs in Admin... we might need to adjust.
-        // To keep it simple for this unifying step, we will assume standard navigation or pass a callback if needed.
-        // BUT, since AdminDashboard was tab-based, we should probably keep utilizing the parent's state OR move to route-based.
-        // For this step, let's keep it visually consistent.
-        if (item.path) navigate(item.path);
+    const handleNavigation = (path) => {
+        navigate(path);
+        if (isMobile) {
+            setSidebarOpen(false);
+        }
     };
 
-    return (
-        <div style={{ display: 'flex', minHeight: '100vh', background: '#f4f6f9', fontFamily: 'Poppins, sans-serif' }}>
+    const toggleSidebar = () => {
+        setSidebarOpen(!sidebarOpen);
+    };
 
+    // Close sidebar when clicking outside on mobile
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (isMobile && sidebarOpen) {
+                const sidebar = document.querySelector(`.${styles.sidebar}`);
+                if (sidebar && !sidebar.contains(event.target)) {
+                    setSidebarOpen(false);
+                }
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, [isMobile, sidebarOpen]);
+
+    return (
+        <div className={styles.container}>
             {/* SIDEBAR */}
-            <div style={{
-                width: sidebarOpen ? '260px' : '80px',
-                background: sidebarBg,
-                color: sidebarText,
-                display: 'flex',
-                flexDirection: 'column',
-                position: 'fixed',
-                height: '100%',
-                zIndex: 10,
-                transition: 'width 0.3s'
-            }}>
+            <aside className={`${styles.sidebar} ${sidebarOpen ? styles.sidebarOpen : styles.sidebarClosed} ${isMobile && sidebarOpen ? styles.sidebarMobileOpen : ''}`}>
                 {/* Logo */}
-                <div style={{ padding: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', gap: '0.75rem', overflow: 'hidden' }}>
-                    <div style={{ width: '35px', height: '35px', background: activeColor, borderRadius: '8px', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>TL</div>
-                    <h2 style={{ fontSize: '1.25rem', margin: 0, fontWeight: 700, letterSpacing: '1px', whiteSpace: 'nowrap', opacity: sidebarOpen ? 1 : 0, transition: 'opacity 0.2s' }}>TopLenss</h2>
+                <div className={styles.logoContainer}>
+                    <div className={styles.logoIcon}>
+                        TL
+                    </div>
+                    <h2 className={`${styles.logoText} ${!sidebarOpen && styles.logoHidden}`}>
+                        TopLenss
+                    </h2>
                 </div>
 
                 {/* Menu */}
-                <nav style={{ flex: 1, padding: '1.5rem 1rem' }}>
-                    <p style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: '#7f8c8d', marginBottom: '1rem', paddingLeft: '0.5rem', opacity: sidebarOpen ? 1 : 0 }}>Menu</p>
+                <nav className={styles.menuContainer}>
+                    <p className={`${styles.menuTitle} ${!sidebarOpen && styles.menuTitleHidden}`}>
+                        Menu
+                    </p>
 
-                    {MenuItems.map((item, idx) => {
-                        const isActive = location.pathname === item.path;
-                        return (
-                            <div
-                                key={idx}
-                                onClick={() => handleNavigation(item)}
-                                style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '1rem',
-                                    padding: '1rem',
-                                    borderRadius: '8px',
-                                    cursor: 'pointer',
-                                    color: isActive ? 'white' : '#bdc3c7',
-                                    background: isActive ? '#34495e' : 'transparent',
-                                    transition: 'all 0.2s',
-                                    marginBottom: '0.5rem',
-                                    justifyContent: sidebarOpen ? 'flex-start' : 'center'
-                                }}
-                                onMouseOver={(e) => !isActive && (e.currentTarget.style.color = 'white')}
-                                onMouseOut={(e) => !isActive && (e.currentTarget.style.color = '#bdc3c7')}
-                            >
-                                {item.icon}
-                                {sidebarOpen && <span style={{ fontSize: '0.95rem', whiteSpace: 'nowrap' }}>{item.label}</span>}
-                            </div>
-                        );
-                    })}
+                    <ul className={styles.menuList}>
+                        {MenuItems.map((item, index) => {
+                            const isActive = location.pathname === item.path;
+                            return (
+                                <li key={index}>
+                                    <a
+                                        onClick={() => handleNavigation(item.path)}
+                                        className={`${styles.menuItem} ${isActive ? styles.menuItemActive : ''}`}
+                                    >
+                                        <span className={styles.menuItemContent}>
+                                            <span className={styles.menuIcon}>
+                                                {item.icon}
+                                            </span>
+                                            <span className={`${styles.menuItemLabel} ${!sidebarOpen && styles.menuItemLabelHidden}`}>
+                                                {item.label}
+                                            </span>
+                                        </span>
+                                    </a>
+                                </li>
+                            );
+                        })}
+                    </ul>
                 </nav>
 
                 {/* Logout */}
-                <div style={{ padding: '1.5rem', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                <div className={styles.logoutContainer}>
                     <button
                         onClick={logout}
-                        style={{
-                            width: '100%',
-                            background: '#e74c3c',
-                            color: 'white',
-                            border: 'none',
-                            padding: '0.75rem',
-                            borderRadius: '6px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: '0.5rem',
-                            cursor: 'pointer',
-                            fontWeight: 600
-                        }}
+                        className={styles.logoutButton}
                     >
-                        <LogOut size={18} /> {sidebarOpen && "Logout"}
+                        <LogOut size={18} />
+                        <span className={`${styles.logoutText} ${!sidebarOpen && styles.logoutTextHidden}`}>
+                            Logout
+                        </span>
                     </button>
                 </div>
-            </div>
+            </aside>
+
+            {/* Main Overlay for Mobile */}
+            {isMobile && sidebarOpen && (
+                <div
+                    className={styles.overlay}
+                    onClick={() => setSidebarOpen(false)}
+                    style={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        background: 'rgba(0, 0, 0, 0.5)',
+                        zIndex: 99
+                    }}
+                />
+            )}
 
             {/* MAIN CONTENT */}
-            <div style={{ flex: 1, marginLeft: sidebarOpen ? '260px' : '80px', display: 'flex', flexDirection: 'column', transition: 'margin-left 0.3s' }}>
-
+            <main className={`${styles.mainContent} ${sidebarOpen ? styles.mainContentExpanded : styles.mainContentCollapsed}`}>
                 {/* Header */}
-                <header style={{
-                    background: 'white',
-                    padding: '1rem 2rem',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.02)',
-                    position: 'sticky',
-                    top: 0,
-                    zIndex: 5
-                }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                        <Menu size={24} style={{ cursor: 'pointer', color: '#2c3e50' }} onClick={() => setSidebarOpen(!sidebarOpen)} />
-                        <h3 style={{ margin: 0, color: '#2c3e50' }}>{title}</h3>
+                <header className={styles.header}>
+                    <div className={styles.headerLeft}>
+                        <button
+                            onClick={toggleSidebar}
+                            className={styles.menuToggle}
+                            aria-label={sidebarOpen ? "Close sidebar" : "Open sidebar"}
+                        >
+                            {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
+                        </button>
+                        <h3 className={styles.pageTitle}>
+                            {title || 'Dashboard'}
+                        </h3>
                     </div>
 
-                    <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
-                        <Search size={20} color="#7f8c8d" />
-                        <div style={{ position: 'relative' }}>
-                            <Bell size={20} color="#7f8c8d" />
-                            <span style={{ position: 'absolute', top: -5, right: -5, width: '8px', height: '8px', background: '#e74c3c', borderRadius: '50%' }}></span>
+                    <div className={styles.headerRight}>
+                        <Search
+                            size={20}
+                            className={styles.headerIcon}
+                            onClick={() => console.log('Search clicked')}
+                        />
+
+                        <div className={`${styles.headerIcon} ${styles.notificationIcon}`}>
+                            <Bell size={20} />
+                            <span className={styles.notificationBadge}></span>
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <div style={{ width: '35px', height: '35px', background: activeColor, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold' }}>
-                                {user?.name?.charAt(0) || 'U'}
+
+                        <div className={styles.userProfile}>
+                            <div className={styles.userAvatar}>
+                                {user?.name?.charAt(0).toUpperCase() || 'U'}
                             </div>
+                            {!isMobile && (
+                                <div className={styles.userInfo}>
+                                    <span className={styles.userName}>
+                                        {user?.name || 'User'}
+                                    </span>
+                                    <span className={styles.userRole}>
+                                        {role === 'admin' ? 'Administrator' : 'Manager'}
+                                    </span>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </header>
 
                 {/* Dynamic Content */}
-                <div style={{ padding: '2rem', flex: 1 }}>
+                <div className={styles.contentArea}>
                     {children}
                 </div>
-
-            </div>
+            </main>
         </div>
     );
 }

@@ -17,6 +17,9 @@ import ManagerSync from "./pages/ManagerSync";
 import ManagerProducts from "./pages/ManagerProducts";
 import ProductDetail from "./pages/ProductDetail";
 import ManagerBrands from "./pages/ManagerBrands";
+import ManagerImagesProducts from "./pages/ManagerImagesProducts";
+import ManagerWishlist from "./pages/ManagerWishlist";
+import ManagerProductEdit from "./pages/ManagerProductEdit";
 
 const ProtectedRoute = ({ children, role }) => {
   const { user, token } = useAuth();
@@ -89,6 +92,24 @@ function AppRoutes() {
       <Route path="/dashboard/brands" element={
         <ProtectedRoute role="manager">
           <ManagerBrands />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/dashboard/wishlist" element={
+        <ProtectedRoute role="manager">
+          <ManagerWishlist />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/dashboard/products/:reference/edit" element={
+        <ProtectedRoute role="manager">
+          <ManagerProductEdit />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/dashboard/images/:reference" element={
+        <ProtectedRoute role="manager">
+          <ManagerImagesProducts />
         </ProtectedRoute>
       } />
       <Route path="/" element={<Navigate to="/login" />} />
