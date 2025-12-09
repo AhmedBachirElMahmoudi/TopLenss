@@ -1,0 +1,155 @@
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    overflow: hidden;
+}
+
+.header {
+    background: #3498db;
+    padding: 1.5rem;
+    color: white;
+}
+
+.title {
+    margin: 0;
+    font-size: 1.5rem;
+}
+
+.subtitle {
+    margin: 0.5rem 0 0;
+    opacity: 0.9;
+}
+
+.content {
+    padding: 2rem;
+}
+
+.messageSuccess {
+    padding: 1rem;
+    background: #f0f9eb;
+    color: #67c23a;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.messageError {
+    padding: 1rem;
+    background: #fef0f0;
+    color: #f56c6c;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.formGroup {
+    margin-bottom: 1.5rem;
+}
+
+.label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #34495e;
+}
+
+.input {
+    width: 100%;
+    padding: 0.875rem;
+    border-radius: 8px;
+    border: 1px solid #dfe6e9;
+    outline: none;
+    transition: border-color 0.3s ease;
+}
+
+.input:focus {
+    border-color: #3498db;
+}
+
+.inputWrapper {
+    position: relative;
+}
+
+.icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #95a5a6;
+}
+
+.inputWithIcon {
+    width: 100%;
+    padding: 0.875rem 0.875rem 0.875rem 2.75rem;
+    border-radius: 8px;
+    border: 1px solid #dfe6e9;
+    outline: none;
+    transition: border-color 0.3s ease;
+}
+
+.inputWithIcon:focus {
+    border-color: #3498db;
+}
+
+.button {
+    padding: 1rem 2rem;
+    background: #2c3e50;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.button:hover:not(:disabled) {
+    background: #1a252f;
+}
+
+.button:disabled {
+    background: #95a5a6;
+    cursor: wait;
+}
+
+.summary {
+    margin-top: 2rem;
+    border-top: 1px solid #eee;
+    padding-top: 1.5rem;
+}
+
+.summaryTitle {
+    margin: 0 0 1rem;
+    color: #2c3e50;
+}
+
+.summaryContent {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px dashed #ced4da;
+}
+
+.summaryText {
+    margin: 0.25rem 0;
+}
+
+.highlight {
+    color: #e67e22;
+}
+
+.note {
+    display: block;
+    margin-top: 0.5rem;
+    color: #7f8c8d;
+    font-size: 0.875rem;
+}

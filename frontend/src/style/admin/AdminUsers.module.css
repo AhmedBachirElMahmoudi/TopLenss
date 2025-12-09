@@ -1,0 +1,352 @@
+.container {
+    position: relative;
+    padding: 2rem;
+}
+
+/* Header Section */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.title {
+    margin: 0;
+    color: #2c3e50;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.searchContainer {
+    position: relative;
+}
+
+.searchIcon {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #95a5a6;
+}
+
+.searchInput {
+    padding: 0.5rem 0.5rem 0.5rem 2.25rem;
+    border-radius: 20px;
+    border: 1px solid #dfe6e9;
+    outline: none;
+    width: 250px;
+    transition: all 0.3s ease;
+}
+
+.searchInput:focus {
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    width: 300px;
+}
+
+/* Table Styles */
+.tableContainer {
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    margin-bottom: 1.5rem;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    min-width: 600px;
+}
+
+.tableHeader {
+    background: #f8f9fa;
+    border-bottom: 1px solid #eee;
+}
+
+.tableHeader th {
+    padding: 1rem;
+    color: #7f8c8d;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.tableRow {
+    border-bottom: 1px solid #eee;
+    transition: background-color 0.2s;
+}
+
+.tableRow:hover {
+    background-color: #fafbfc;
+}
+
+.tableCell {
+    padding: 1rem;
+    font-size: 0.95rem;
+    color: #34495e;
+}
+
+/* Role Badge */
+.roleBadge {
+    padding: 0.25rem 0.75rem;
+    background: #d5f5e3;
+    color: #27ae60;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    display: inline-block;
+}
+
+/* Action Buttons */
+.actionButtons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.editButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #f39c12;
+    transition: color 0.2s;
+    padding: 0.25rem;
+    border-radius: 4px;
+}
+
+.editButton:hover {
+    color: #e67e22;
+    background: rgba(243, 156, 18, 0.1);
+}
+
+.deleteButton {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #e74c3c;
+    transition: color 0.2s;
+    padding: 0.25rem;
+    border-radius: 4px;
+}
+
+.deleteButton:hover {
+    color: #c0392b;
+    background: rgba(231, 76, 60, 0.1);
+}
+
+/* Loading & Empty States */
+.loadingCell {
+    padding: 2rem;
+    text-align: center;
+    color: #7f8c8d;
+}
+
+.emptyCell {
+    padding: 2rem;
+    text-align: center;
+    color: #7f8c8d;
+}
+
+.loadingSpinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #3498db;
+    border-radius: 50%;
+    margin: 0 auto;
+    animation: spin 1s linear infinite;
+}
+
+/* Pagination */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.pageInfo {
+    color: #34495e;
+    font-weight: 500;
+}
+
+.pageButton {
+    background: white;
+    border: 1px solid #ddd;
+    padding: 0.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.pageButton:hover:not(:disabled) {
+    background: #f8f9fa;
+    border-color: #3498db;
+    color: #3498db;
+}
+
+.pageButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Modal Styles */
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    animation: fadeIn 0.2s ease-out;
+}
+
+.modal {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    animation: slideUp 0.3s ease-out;
+}
+
+.modalIcon {
+    width: 60px;
+    height: 60px;
+    background: #fee2e2;
+    color: #ef4444;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem auto;
+}
+
+.modalTitle {
+    margin-bottom: 0.5rem;
+    color: #1f2937;
+    font-size: 1.25rem;
+}
+
+.modalMessage {
+    color: #6b7280;
+    margin-bottom: 2rem;
+    line-height: 1.5;
+}
+
+.modalActions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.cancelButton {
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    background: white;
+    color: #374151;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.cancelButton:hover {
+    background: #f9fafb;
+    border-color: #9ca3af;
+}
+
+.deleteConfirmButton {
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    border: none;
+    background: #ef4444;
+    color: white;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+
+.deleteConfirmButton:hover {
+    background: #dc2626;
+}
+
+/* Animations */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .container {
+        padding: 1rem;
+    }
+
+    .header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .searchInput {
+        width: 100%;
+    }
+
+    .searchInput:focus {
+        width: 100%;
+    }
+
+    .tableContainer {
+        overflow-x: auto;
+    }
+
+    .modalActions {
+        flex-direction: column;
+    }
+
+    .cancelButton,
+    .deleteConfirmButton {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .actionButtons {
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+}

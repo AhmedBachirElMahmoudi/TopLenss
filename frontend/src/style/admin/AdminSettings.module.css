@@ -1,0 +1,334 @@
+.container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding-bottom: 3rem;
+}
+
+/* Page Header */
+.pageHeader {
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.pageTitle {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}
+
+.pageSubtitle {
+    color: #7f8c8d;
+    margin: 0;
+}
+
+.saveButton {
+    background: #3498db;
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(52, 152, 219, 0.3);
+    transition: background-color 0.2s, transform 0.2s;
+}
+
+.saveButton:hover:not(:disabled) {
+    background: #2980b9;
+    transform: translateY(-1px);
+}
+
+.saveButton:disabled {
+    opacity: 0.7;
+    cursor: wait;
+}
+
+/* Success Message */
+.successMessage {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: #f0f9eb;
+    color: #67c23a;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    animation: slideDown 0.3s ease-out;
+}
+
+/* Cards */
+.card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    margin-bottom: 2rem;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.08);
+}
+
+.cardHeader {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid #f1f2f6;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: #fff;
+}
+
+.cardTitle {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.cardContent {
+    padding: 1.5rem;
+}
+
+/* Settings Rows */
+.settingRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 0;
+    border-bottom: 1px solid #f8f9fa;
+    transition: background-color 0.2s;
+}
+
+.settingRow:hover {
+    background-color: #fafbfc;
+}
+
+.settingRow:last-child {
+    border-bottom: none;
+}
+
+.settingInfo {
+    flex: 1;
+    min-width: 0;
+}
+
+.settingLabel {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #34495e;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.settingDescription {
+    font-size: 0.85rem;
+    color: #7f8c8d;
+    margin: 0.25rem 0 0 0;
+    line-height: 1.4;
+}
+
+/* Toggle Button */
+.toggleButton {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    color: #bdc3c7;
+    display: flex;
+    align-items: center;
+    transition: color 0.2s;
+    margin-left: 1rem;
+}
+
+.toggleButton:hover {
+    color: #95a5a6;
+}
+
+.toggleActive {
+    color: #2ecc71;
+}
+
+.toggleWarning {
+    color: #e74c3c;
+}
+
+.togglePrimary {
+    color: #3498db;
+}
+
+/* Input Fields */
+.inputField {
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    border: 1px solid #dfe6e9;
+    outline: none;
+    color: #2c3e50;
+    font-weight: 500;
+    width: 250px;
+    transition: border-color 0.2s;
+}
+
+.inputField:focus {
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+/* Password Section */
+.passwordSection {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    padding-top: 1.5rem;
+}
+
+.passwordHeader {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.passwordGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    width: 100%;
+}
+
+.passwordInput {
+    padding: 0.75rem;
+    border-radius: 6px;
+    border: 1px solid #dfe6e9;
+    width: 100%;
+    transition: border-color 0.2s;
+}
+
+.passwordInput:focus {
+    border-color: #3498db;
+}
+
+.updatePasswordButton {
+    margin-top: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: #ecf0f1;
+    color: #2c3e50;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.2s;
+}
+
+.updatePasswordButton:hover {
+    background: #d5dbdb;
+}
+
+/* Icons */
+.iconGeneral {
+    color: #3498db;
+}
+
+.iconNotifications {
+    color: #f1c40f;
+}
+
+.iconSecurity {
+    color: #e74c3c;
+}
+
+/* Animations */
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.card {
+    animation: fadeIn 0.4s ease-out;
+}
+
+.card:nth-child(1) {
+    animation-delay: 0.1s;
+}
+
+.card:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.card:nth-child(3) {
+    animation-delay: 0.3s;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .container {
+        padding: 1rem;
+    }
+
+    .pageHeader {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .settingRow {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+        padding: 1.25rem 0;
+    }
+
+    .inputField {
+        width: 100%;
+    }
+
+    .toggleButton {
+        align-self: flex-end;
+        margin-left: 0;
+    }
+
+    .passwordGrid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .pageTitle {
+        font-size: 1.5rem;
+    }
+
+    .saveButton {
+        width: 100%;
+        justify-content: center;
+    }
+}

@@ -1,0 +1,56 @@
+:root {
+  --primary: #7B2CBF;
+  --primary-hover: #9D4EDD;
+  --secondary: #FF66A1; /* Pink accent */
+  --bg-dark: #1e1e2d;
+  --bg-light: #F6F7FB;
+  --text-dark: #2E2E2E;
+  --text-grey: #8A92A6;
+  --card-bg: #FFFFFF;
+  --sidebar-w: 260px;
+  --shadow-sm: 0 2px 4px rgba(0,0,0,0.02);
+  --shadow-md: 0 5px 15px rgba(0,0,0,0.05);
+  --radius: 12px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background-color: var(--bg-light);
+  color: var(--text-dark);
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5 {
+  font-weight: 600;
+  margin-top: 0;
+}
+
+button {
+  font-family: 'Poppins', sans-serif;
+  transition: all 0.2s ease;
+}
+
+input {
+    font-family: 'Poppins', sans-serif;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #aaa;
+}
