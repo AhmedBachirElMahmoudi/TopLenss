@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useCart } from "../context/CartContext";
 import {
     LayoutDashboard,
     UserPlus,
@@ -16,12 +17,14 @@ import {
     RefreshCw,
     X,
     Tag,
-    Heart
+    Heart,
+    FileText
 } from "lucide-react";
 import styles from "../style/components/DashboardLayout.module.css";
 
 export default function DashboardLayout({ children, role, title }) {
     const { logout, user } = useAuth();
+    const { cartCount } = useCart();
     const navigate = useNavigate();
     const location = useLocation();
     const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -49,12 +52,12 @@ export default function DashboardLayout({ children, role, title }) {
         { icon: <Settings size={20} />, label: 'Settings', path: '/admin/settings' },
     ] : [
         { icon: <LayoutDashboard size={20} />, label: 'Overview', path: '/dashboard' },
-        { icon: <ShoppingCart size={20} />, label: 'Orders', path: '/dashboard/orders' },
+        { icon: <ShoppingCart size={20} />, label: 'My Cart', path: '/dashboard/cart', badge: cartCount > 0 ? cartCount : null },
+        { icon: <FileText size={20} />, label: 'Orders', path: '/dashboard/orders' },
         { icon: <Tag size={20} />, label: 'Brands', path: '/dashboard/brands' },
         { icon: <Package size={20} />, label: 'Products', path: '/dashboard/products' },
-        { icon: <Heart size={20} />, label: 'Wishlist', path: '/dashboard/wishlist' }, // Added Wishlist
+        { icon: <Heart size={20} />, label: 'Wishlist', path: '/dashboard/wishlist' },
         { icon: <Package size={20} />, label: 'Images', path: '/dashboard/images/:reference' },
-        { icon: <ClipboardCheck size={20} />, label: 'Validation', path: '/dashboard/validation' },
         { icon: <RefreshCw size={20} />, label: 'Synchronization', path: '/dashboard/sync' },
         { icon: <Settings size={20} />, label: 'Settings', path: '/dashboard/settings' },
         { icon: <Users size={20} />, label: 'Switch Client', path: '/clients' },
@@ -122,6 +125,22 @@ export default function DashboardLayout({ children, role, title }) {
                                             <span className={`${styles.menuItemLabel} ${!sidebarOpen && styles.menuItemLabelHidden}`}>
                                                 {item.label}
                                             </span>
+                                            {item.badge && (
+                                                <span style={{
+                                                    marginLeft: 'auto',
+                                                    backgroundColor: '#ef4444',
+                                                    color: 'white',
+                                                    borderRadius: '999px',
+                                                    padding: '0 6px',
+                                                    fontSize: '0.75rem',
+                                                    fontWeight: 'bold',
+                                                    minWidth: '1.25rem',
+                                                    textAlign: 'center',
+                                                    display: !sidebarOpen ? 'none' : 'block'
+                                                }}>
+                                                    {item.badge}
+                                                </span>
+                                            )}
                                         </span>
                                     </a>
                                 </li>
@@ -137,7 +156,7 @@ export default function DashboardLayout({ children, role, title }) {
                         className={styles.logoutButton}
                     >
                         <LogOut size={18} />
-                        <span className={`${styles.logoutText} ${!sidebarOpen && styles.logoutTextHidden}`}>
+                        <span className={`${styles.logoutText} ${!sidebarOpen && styles.logoutTextHidden} `}>
                             Logout
                         </span>
                     </button>
@@ -162,7 +181,7 @@ export default function DashboardLayout({ children, role, title }) {
             )}
 
             {/* MAIN CONTENT */}
-            <main className={`${styles.mainContent} ${sidebarOpen ? styles.mainContentExpanded : styles.mainContentCollapsed}`}>
+            <main className={`${styles.mainContent} ${sidebarOpen ? styles.mainContentExpanded : styles.mainContentCollapsed} `}>
                 {/* Header */}
                 <header className={styles.header}>
                     <div className={styles.headerLeft}>
@@ -185,7 +204,7 @@ export default function DashboardLayout({ children, role, title }) {
                             onClick={() => console.log('Search clicked')}
                         />
 
-                        <div className={`${styles.headerIcon} ${styles.notificationIcon}`}>
+                        <div className={`${styles.headerIcon} ${styles.notificationIcon} `}>
                             <Bell size={20} />
                             <span className={styles.notificationBadge}></span>
                         </div>

@@ -1,14 +1,17 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useCart } from '../context/CartContext';
 import DashboardLayout from '../components/DashboardLayout';
-import { ArrowLeft, Package, DollarSign, Hash, Barcode, Image as ImageIcon, Settings } from 'lucide-react';
+import { ArrowLeft, Package, DollarSign, Hash, Barcode, Image as ImageIcon, Settings, ShoppingCart } from 'lucide-react';
 
 export default function ProductDetail() {
   const [activeImage, setActiveImage] = useState(null);
+  const [quantity, setQuantity] = useState(1);
   const { reference } = useParams();
   const navigate = useNavigate();
   const { api } = useAuth();
+  const { addToCart } = useCart();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -212,6 +215,43 @@ export default function ProductDetail() {
                   <span className="info-value">{product.CL_No4}</span>
                 </div>
               )}
+            </div>
+
+            {/* Add to Cart Section */}
+            <div className="add-to-cart-section">
+              <div className="quantity-selector">
+                <label>Quantity:</label>
+                <div className="quantity-controls">
+                  <button
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    className="qty-btn"
+                  >
+                    -
+                  </button>
+                  <input
+                    type="number"
+                    value={quantity}
+                    onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                    min="1"
+                    className="qty-input"
+                  />
+                  <button
+                    onClick={() => setQuantity(quantity + 1)}
+                    className="qty-btn"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+
+              <button
+                onClick={() => addToCart(product, quantity)}
+                className="add-to-cart-btn"
+                disabled={product.qte_stock === 0}
+              >
+                <ShoppingCart size={20} />
+                <span>{product.qte_stock === 0 ? 'Out of Stock' : 'Add to Cart'}</span>
+              </button>
             </div>
           </div>
         </div>
@@ -473,6 +513,94 @@ export default function ProductDetail() {
           .info-value {
             font-weight: 600;
             color: #1f2937;
+          }
+
+          .add-to-cart-section {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 2px solid #e5e7eb;
+          }
+
+          .quantity-selector {
+            margin-bottom: 1.5rem;
+          }
+
+          .quantity-selector label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #374151;
+          }
+
+          .quantity-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            width: fit-content;
+          }
+
+          .qty-btn {
+            width: 40px;
+            height: 40px;
+            border: 2px solid #e5e7eb;
+            background: white;
+            border-radius: 8px;
+            font-size: 1.25rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+
+          .qty-btn:hover {
+            border-color: #3498db;
+            color: #3498db;
+          }
+
+          .qty-input {
+            width: 80px;
+            height: 40px;
+            text-align: center;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+          }
+
+          .qty-input:focus {
+            outline: none;
+            border-color: #3498db;
+          }
+
+          .add-to-cart-btn {
+            width: 100%;
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+          }
+
+          .add-to-cart-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+          }
+
+          .add-to-cart-btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            box-shadow: none;
           }
 
           .loading-container, .error-container {

@@ -1,20 +1,31 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import DashboardLayout from "../components/DashboardLayout";
 import {
     LayoutDashboard,
     ShoppingCart,
-    ClipboardCheck,
+    Package,
     TrendingUp,
-    ChevronDown,
-    Phone,
-    MapPin
+    Heart,
+    FileText,
+    Loader
 } from "lucide-react";
 import styles from "../style/ManagerDashboard.module.css";
 
 export default function ManagerDashboard() {
     const navigate = useNavigate();
+    const { api } = useAuth();
     const [client, setClient] = useState(null);
+    const [stats, setStats] = useState({
+        totalProducts: 0,
+        totalOrders: 0,
+        pendingOrders: 0,
+        validatedOrders: 0,
+        wishlistCount: 0,
+        totalRevenue: 0,
+        totalOrderItems: 0
+    });
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -23,23 +34,82 @@ export default function ManagerDashboard() {
             navigate("/clients");
         } else {
             setClient(JSON.parse(stored));
-            setLoading(false);
+            fetchStats();
         }
     }, [navigate]);
 
+    const fetchStats = async () => {
+        try {
+            setLoading(true);
+
+            const stored = localStorage.getItem("selectedClient");
+            const currentClient = JSON.parse(stored);
+
+            console.log('Current Client:', currentClient);
+            console.log('Client ct_num:', currentClient.ct_num);
+
+            // Fetch all data in parallel
+            const [productsRes, ordersRes, wishlistRes] = await Promise.all([
+                api.get('/products'),
+                api.get('/orders', { params: { ct_num: currentClient.ct_num } }),
+                api.get(`/wishlist/${currentClient.ct_num}`)
+            ]);
+
+            const allOrders = ordersRes.data.data || ordersRes.data || [];
+            const products = productsRes.data.data || productsRes.data || [];
+            const wishlist = wishlistRes.data.data || wishlistRes.data || [];
+
+            console.log('All Orders from API:', allOrders);
+            console.log('Orders count:', allOrders.length);
+
+            // Filter orders by current client (in case backend doesn't filter)
+            const orders = allOrders.filter(o => o.ct_num === currentClient.ct_num);
+
+            console.log('Filtered Orders:', orders);
+            console.log('Filtered Orders count:', orders.length);
+
+            // Calculate stats
+            const pendingOrders = orders.filter(o => o.order_status === 0).length;
+            const validatedOrders = orders.filter(o => o.order_status === 1).length;
+            const totalRevenue = orders
+                .filter(o => o.order_status === 1) // Only validated orders
+                .reduce((sum, order) => sum + parseFloat(order.price_total || 0), 0);
+
+            // Count total quantity of all items in all orders
+            const totalOrderItems = orders.reduce((sum, order) => {
+                const items = order.items || [];
+                const orderQty = items.reduce((itemSum, item) => itemSum + (parseInt(item.qte) || 0), 0);
+                return sum + orderQty;
+            }, 0);
+
+            setStats({
+                totalProducts: products.length,
+                totalOrders: orders.length,
+                pendingOrders,
+                validatedOrders,
+                wishlistCount: wishlist.length,
+                totalRevenue,
+                totalOrderItems
+            });
+
+            setLoading(false);
+        } catch (error) {
+            console.error('Failed to fetch stats:', error);
+            setLoading(false);
+        }
+    };
+
     if (loading) {
         return (
-            <div className={styles.loadingContainer}>
-                <div className={styles.loadingSpinner} />
-            </div>
+            <DashboardLayout role="manager" title="Dashboard Overview">
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+                    <Loader size={40} color="#3498db" style={{ animation: 'spin 1s linear infinite' }} />
+                </div>
+            </DashboardLayout>
         );
     }
 
     if (!client) return null;
-
-    // Chart data
-    const chartData = [45, 65, 35, 85, 55, 95, 50];
-    const monthLabels = ['OCT', 'NOV', 'DEC', 'JAN', 'FEB', 'MAR', 'APR'];
 
     return (
         <DashboardLayout role="manager" title="Dashboard Overview">
@@ -47,60 +117,90 @@ export default function ManagerDashboard() {
                 {/* Stats Row */}
                 <div className={styles.statsGrid}>
                     <StatCard
-                        icon={<LayoutDashboard size={24} color="#3498db" />}
+                        icon={<Package size={24} color="#3498db" />}
                         bgColor="#ebf5fb"
-                        value={client.ct_intitule}
-                        label="Active Client"
+                        value={stats.totalOrderItems}
+                        label="Items Ordered"
                     />
                     <StatCard
-                        icon={<ShoppingCart size={24} color="#e74c3c" />}
-                        bgColor="#fdedec"
-                        value="24"
+                        icon={<FileText size={24} color="#9b59b6" />}
+                        bgColor="#f4ecf7"
+                        value={stats.totalOrders}
+                        label="Total Orders"
+                    />
+                    <StatCard
+                        icon={<ShoppingCart size={24} color="#f39c12" />}
+                        bgColor="#fef9e7"
+                        value={stats.pendingOrders}
                         label="Pending Orders"
                     />
                     <StatCard
                         icon={<TrendingUp size={24} color="#27ae60" />}
                         bgColor="#eafaf1"
-                        value="$12,450"
+                        value={`${stats.totalRevenue.toFixed(2)} MAD`}
                         label="Total Revenue"
                     />
+                </div>
+
+                {/* Second Row Stats */}
+                <div className={styles.statsGrid} style={{ marginTop: '1.5rem' }}>
                     <StatCard
-                        icon={<ClipboardCheck size={24} color="#f39c12" />}
-                        bgColor="#fef9e7"
-                        value="5"
-                        label="To Validate"
+                        icon={<Heart size={24} color="#e74c3c" />}
+                        bgColor="#fdedec"
+                        value={stats.wishlistCount}
+                        label="Wishlist Items"
+                    />
+                    <StatCard
+                        icon={<LayoutDashboard size={24} color="#16a085" />}
+                        bgColor="#e8f8f5"
+                        value={stats.validatedOrders}
+                        label="Validated Orders"
+                    />
+                    <StatCard
+                        icon={<LayoutDashboard size={24} color="#34495e" />}
+                        bgColor="#ecf0f1"
+                        value={client.ct_num}
+                        label="Client Number"
+                    />
+                    <StatCard
+                        icon={<TrendingUp size={24} color="#e67e22" />}
+                        bgColor="#fef5e7"
+                        value={stats.validatedOrders > 0 ? (stats.totalRevenue / stats.validatedOrders).toFixed(2) + ' MAD' : '0 MAD'}
+                        label="Avg Order Value"
                     />
                 </div>
 
                 {/* Charts & Content Area */}
                 <div className={styles.contentGrid}>
-                    {/* Main Chart Section */}
+                    {/* Quick Stats Summary */}
                     <div className={styles.card}>
                         <div className={styles.cardHeader}>
-                            <h3 className={styles.sectionTitle}>Sales Performance</h3>
-                            <div className={styles.timeFilter}>
-                                <span>Last 6 Months</span>
-                                <ChevronDown size={14} />
-                            </div>
+                            <h3 className={styles.sectionTitle}>Quick Summary</h3>
                         </div>
 
-                        {/* Chart Visualization */}
-                        <div className={styles.chartContainer}>
-                            {chartData.map((height, index) => (
-                                <div key={index} className={styles.chartBar}>
-                                    <div 
-                                        className={`${styles.bar} ${
-                                            index % 2 === 0 ? styles.barPrimary : styles.barSecondary
-                                        }`}
-                                        style={{ height: `${height}%` }}
-                                    />
-                                </div>
-                            ))}
-                        </div>
-                        <div className={styles.chartLabels}>
-                            {monthLabels.map((month, index) => (
-                                <span key={index}>{month}</span>
-                            ))}
+                        <div style={{ padding: '1.5rem' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                                <SummaryItem
+                                    label="Order Completion Rate"
+                                    value={stats.totalOrders > 0 ? `${((stats.validatedOrders / stats.totalOrders) * 100).toFixed(1)}%` : '0%'}
+                                    color="#27ae60"
+                                />
+                                <SummaryItem
+                                    label="Average Order Value"
+                                    value={stats.validatedOrders > 0 ? `${(stats.totalRevenue / stats.validatedOrders).toFixed(2)} MAD` : '0 MAD'}
+                                    color="#3498db"
+                                />
+                                <SummaryItem
+                                    label="Pending vs Validated"
+                                    value={`${stats.pendingOrders} / ${stats.validatedOrders}`}
+                                    color="#f39c12"
+                                />
+                                <SummaryItem
+                                    label="Wishlist Conversion"
+                                    value={stats.wishlistCount > 0 && stats.totalOrders > 0 ? `${((stats.totalOrders / stats.wishlistCount) * 100).toFixed(1)}%` : 'N/A'}
+                                    color="#9b59b6"
+                                />
+                            </div>
                         </div>
                     </div>
 
@@ -120,21 +220,11 @@ export default function ManagerDashboard() {
                         </div>
 
                         {/* Contact Information */}
-                        <div className={styles.contactGrid}>
-                            <div className={styles.contactItem}>
-                                <Phone size={18} className={styles.contactIcon} />
-                                <div className={styles.contactInfo}>
-                                    <p className={styles.contactLabel}>Phone</p>
-                                    <p className={styles.contactValue}>{client.ct_telephone}</p>
-                                </div>
-                            </div>
-                            <div className={styles.contactItem}>
-                                <MapPin size={18} className={styles.contactIcon} />
-                                <div className={styles.contactInfo}>
-                                    <p className={styles.contactLabel}>Address</p>
-                                    <p className={styles.contactValue}>{client.ct_adresse}</p>
-                                </div>
-                            </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', padding: '0 1rem' }}>
+                            <InfoRow label="Client Number" value={client.ct_num} />
+                            <InfoRow label="Phone" value={client.ct_telephone || 'N/A'} />
+                            <InfoRow label="Email" value={client.ct_email} />
+                            <InfoRow label="Address" value={client.ct_adresse || 'N/A'} />
                         </div>
                     </div>
                 </div>
@@ -154,6 +244,26 @@ function StatCard({ icon, bgColor, value, label }) {
                 <h4 className={styles.statValue}>{value}</h4>
                 <p className={styles.statLabel}>{label}</p>
             </div>
+        </div>
+    );
+}
+
+// SummaryItem Component
+function SummaryItem({ label, value, color }) {
+    return (
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '1rem', borderBottom: '1px solid #ecf0f1' }}>
+            <span style={{ color: '#7f8c8d', fontSize: '0.95rem' }}>{label}</span>
+            <span style={{ color: color, fontWeight: 'bold', fontSize: '1.1rem' }}>{value}</span>
+        </div>
+    );
+}
+
+// InfoRow Component
+function InfoRow({ label, value }) {
+    return (
+        <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '0.75rem', borderBottom: '1px solid #ecf0f1' }}>
+            <span style={{ color: '#95a5a6', fontSize: '0.9rem' }}>{label}</span>
+            <span style={{ color: '#2c3e50', fontWeight: '600', fontSize: '0.9rem' }}>{value}</span>
         </div>
     );
 }

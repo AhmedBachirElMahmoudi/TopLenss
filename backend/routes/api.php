@@ -51,4 +51,12 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/wishlist/{clientId}', [\App\Http\Controllers\WishlistController::class, 'index']);
     Route::get('/wishlist/{clientId}/refs', [\App\Http\Controllers\WishlistController::class, 'getReferences']);
     Route::post('/wishlist/toggle', [\App\Http\Controllers\WishlistController::class, 'toggle']);
+
+    // Orders
+    Route::get('/orders', [\App\Http\Controllers\OrderController::class, 'index']);
+    Route::post('/orders', [\App\Http\Controllers\OrderController::class, 'store']);
+    Route::get('/orders/{id}', [\App\Http\Controllers\OrderController::class, 'show']);
+    Route::post('/orders/{id}/validate', [\App\Http\Controllers\OrderController::class, 'validate']);
+    Route::post('/orders/{id}/insert-sql-server', [\App\Http\Controllers\OrderController::class, 'insertToSqlServer']);
+    Route::delete('/orders/{id}', [\App\Http\Controllers\OrderController::class, 'destroy']);
 });

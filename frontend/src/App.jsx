@@ -4,6 +4,8 @@ import AdminDashboard from "./pages/AdminDashboard";
 import ManagerDashboard from "./pages/ManagerDashboard";
 import ClientSelection from "./pages/ClientSelection";
 import { AuthProvider, useAuth } from "./context/AuthContext";
+import { CartProvider } from "./context/CartContext";
+import { ToastProvider } from "./context/ToastContext";
 import AdminLayout from "./pages/AdminLayout";
 import AdminOverview from "./pages/admin/AdminOverview";
 import AdminUsers from "./pages/admin/AdminUsers";
@@ -20,6 +22,9 @@ import ManagerBrands from "./pages/ManagerBrands";
 import ManagerImagesProducts from "./pages/ManagerImagesProducts";
 import ManagerWishlist from "./pages/ManagerWishlist";
 import ManagerProductEdit from "./pages/ManagerProductEdit";
+import ManagerCart from "./pages/ManagerCart";
+import ManagerOrders from "./pages/ManagerOrders";
+import OrderDetail from "./pages/OrderDetail";
 
 const ProtectedRoute = ({ children, role }) => {
   const { user, token } = useAuth();
@@ -101,6 +106,24 @@ function AppRoutes() {
         </ProtectedRoute>
       } />
 
+      <Route path="/dashboard/cart" element={
+        <ProtectedRoute role="manager">
+          <ManagerCart />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/dashboard/orders" element={
+        <ProtectedRoute role="manager">
+          <ManagerOrders />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/dashboard/orders/:id" element={
+        <ProtectedRoute role="manager">
+          <OrderDetail />
+        </ProtectedRoute>
+      } />
+
       <Route path="/dashboard/products/:reference/edit" element={
         <ProtectedRoute role="manager">
           <ManagerProductEdit />
@@ -121,7 +144,11 @@ export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <AppRoutes />
+        <ToastProvider>
+          <CartProvider>
+            <AppRoutes />
+          </CartProvider>
+        </ToastProvider>
       </AuthProvider>
     </BrowserRouter>
   );
